@@ -7,7 +7,10 @@
 
 class Codec {
   private:
+	static constexpr int _metadata_len = 4;
+	static constexpr int _div[4]={128,256,256,256};
     std::string _msg;
+	long long _rest_msg_len;
 
   public:
     Codec();
