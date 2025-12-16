@@ -39,23 +39,38 @@ int Server::send(TCPSocketPtr client_sock, const std::string &msg) {
 
 // send ``msg'' to some clients: ``client_socks''
 void Server::send(std::vector<TCPSocketPtr> &client_socks, const std::string &msg) {
-    // TODO: your code here
+    for (auto& client : client_socks) {
+		send(client, msg);
+	}
 }
 
 // send ``msg'' to all clients connected to this server
 void Server::send_all(const std::string &msg) {
-    // TODO: your code here
+    std::unique_lock<std::mutex> lock(_mtx);
+	for (auto& client : _client_socks) {
+		client->socket_send(msg);
+	}
 }
 
 // add the client ``client_sock'' to ``_client_socks''
 void Server::add_client(TCPSocketPtr client_sock) {
-    // TODO: your code here
+    std::unique_lock<std::mutex> lock(_mtx);
+    _client_socks.insert(client_sock);
+    std::cout << "New client connected: " << *client_sock << std::endl;
 }
 
 // delete the client ``client_sock'' from ``_client_socks''
 // and shutdown the corresponding socket
 void Server::del_client(TCPSocketPtr client_sock) {
-    // TODO: your code here
+    std::unique_lock<std::mutex> lock(_mtx);
+    auto it = _client_socks.find(client_sock);
+    if (it != _client_socks.end()) {
+        client_sock->socket_shutdown();
+        _client_socks.erase(it);
+        std::cout << "Client disconnected: " << *client_sock << std::endl;
+    } else {
+        std::cerr << "Error: Client not found in client set: " << *client_sock << std::endl;
+    }
 }
 
 bool Server::count(TCPSocketPtr client_sock) {
